@@ -1,0 +1,96 @@
+'use strict';
+
+$( document ).ready( () => {
+  $( '#modal-button' ).click( () => {
+    $( '.modal-body' ).html( '' );
+    $.get( `/api/courses`, ( results = {} ) => {
+
+      let data = results.data;
+      if ( !data || !data.courses ) return;
+
+      data.courses.forEach( ( course ) => {
+        $( '.modal-body' ).append(
+          `<div>
+						<span class="course-cost">$${course.cost}</span>
+						<span class='course-title'>
+							${course.title}
+						</span>
+						<button class='${course.joined ? 'joined-button' : 'join-button' } btn btn-info btn-sm' data-id='${course._id}'>
+							${course.joined ? 'Joined' : 'Join'}
+						</button>
+						<div class='course-description'>
+							${course.description}
+						</div>
+    	 	 </div>`
+        );
+      } );
+    } )
+      .then( () => {
+        addJoinButtonListener();
+      } );
+  } );
+
+const socket = io();
+
+  $( '#chatForm' ).submit( () => {
+    let text = $( '#chat_input' ).val(),
+      userName = $( '#chat_user_name' ).val(),
+      userId = $( '#chat_user_id' ).val();
+    socket.emit( 'message', {
+      content: text,
+      userName: userName,
+      userId: userId
+    } );
+    $( '#chat-input' ).val( '' );
+    return false;
+  } );
+
+  socket.on( 'message', ( message ) => {
+    displayMessage( message );
+    for ( let i = 0; i < 2; i++ ) {
+      $( '.chat-icon' ).fadeOut( 200 ).fadeIn( 200 );
+    }
+  } );
+
+  socket.on( 'load all messages', ( data ) => {
+    data.forEach( message => {
+      displayMessage( message );
+    } );
+  } );
+} );
+
+
+let addJoinButtonListener = () => {
+  $( '.join-button' ).click( ( event ) => {
+    let $button = $( event.target ),
+      courseId = $button.data( 'id' );
+    $.get( `/api/courses/${courseId}/join`, ( results = {} ) => {
+      let data = results.data;
+      if ( data && data.success ) {
+        $button
+          .text( 'Joined' )
+          .addClass( 'joined-button' )
+          .removeClass( 'join-button' );
+      } else {
+        $button.text( 'Try again' );
+      }
+    } );
+  } );
+};
+
+let displayMessage = ( message ) => {
+    $( '#chat' ).prepend( $( '<li>' ).html( `
+			<div class='message ${getCurrentUserClass(message.user)}'>
+				<span class="user_name">
+					${message.userName}:
+				</span>
+				${message.content}
+				</div>
+		` ) );
+};
+
+let getCurrentUserClass = ( id ) => {
+  let userId = $( '#chat_user_id' ).val();
+  if ( userId === id ) return 'current_user';
+  else return '';
+};
