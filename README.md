@@ -1,4 +1,4 @@
-# EstiloCafe
+# Node complete app
 
 This is a complete Node.js application. Where I follow the step to step from [Get Programming with Node.js](https://www.manning.com/books/get-programming-with-node-js). The main goal for this repo are expose several features that Node offer, and that we can implement it in a few lines of code. It include: CRUD operations, live chat, auth and user login, REST Api development and and communication with MongoDB. 
 
